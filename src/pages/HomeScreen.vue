@@ -214,7 +214,11 @@ const confirmStart = async () => {
 
 const goNext = () => {
   const total = totalSlides.value
-  if (!hasRealSlides.value || total <= 1 || isAnimating.value) return
+  if (!hasRealSlides.value || total <= 1) return
+  
+  // Don't allow new animations if already animating
+  if (isAnimating.value) return
+  
   allowTransition.value = true
   dragOffset.value = 0
   isAnimating.value = true
@@ -224,7 +228,11 @@ const goNext = () => {
 
 const goPrev = () => {
   const total = totalSlides.value
-  if (!hasRealSlides.value || total <= 1 || isAnimating.value) return
+  if (!hasRealSlides.value || total <= 1) return
+  
+  // Don't allow new animations if already animating
+  if (isAnimating.value) return
+  
   allowTransition.value = true
   dragOffset.value = 0
   isAnimating.value = true
@@ -241,20 +249,30 @@ const finishTransitionIfNeeded = () => {
     return
   }
 
-  if (trackPosition.value === 0) {
+  // When reaching the cloned first slide (after the last real slide), 
+  // jump back to the real first slide without animation
+  if (trackPosition.value === total + 1) {
     allowTransition.value = false
-    trackPosition.value = total
+    trackPosition.value = 1
+    currentIndex.value = 0
+    // Wait for the next frame to re-enable transitions
     requestAnimationFrame(() => {
       allowTransition.value = true
     })
-  } else if (trackPosition.value === total + 1) {
+  } 
+  // When reaching the cloned last slide (before the first real slide),
+  // jump to the real last slide without animation
+  else if (trackPosition.value === 0) {
     allowTransition.value = false
-    trackPosition.value = 1
+    trackPosition.value = total
+    currentIndex.value = total - 1
+    // Wait for the next frame to re-enable transitions
     requestAnimationFrame(() => {
       allowTransition.value = true
     })
   }
 
+  // Always reset animation state to allow new interactions
   isAnimating.value = false
 }
 
@@ -286,6 +304,8 @@ const handlePointerMove = (event) => {
   const deltaX = event.clientX - dragStartX.value
   if (!isDragging.value && Math.abs(deltaX) > 10) {
     isDragging.value = true
+    // When we start dragging, we should stop any ongoing animation
+    isAnimating.value = false
   }
   if (isDragging.value) {
     dragOffset.value = deltaX
