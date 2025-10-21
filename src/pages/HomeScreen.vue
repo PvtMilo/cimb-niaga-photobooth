@@ -252,24 +252,26 @@ const finishTransitionIfNeeded = () => {
   // When reaching the cloned first slide (after the last real slide), 
   // jump back to the real first slide without animation
   if (trackPosition.value === total + 1) {
+    // Disable transition to make the position jump instant
     allowTransition.value = false
     trackPosition.value = 1
     currentIndex.value = 0
-    // Wait for the next frame to re-enable transitions
-    requestAnimationFrame(() => {
+    // Use setTimeout to ensure the position is set before re-enabling transitions
+    setTimeout(() => {
       allowTransition.value = true
-    })
+    }, 0)
   } 
   // When reaching the cloned last slide (before the first real slide),
   // jump to the real last slide without animation
   else if (trackPosition.value === 0) {
+    // Disable transition to make the position jump instant
     allowTransition.value = false
     trackPosition.value = total
     currentIndex.value = total - 1
-    // Wait for the next frame to re-enable transitions
-    requestAnimationFrame(() => {
+    // Use setTimeout to ensure the position is set before re-enabling transitions
+    setTimeout(() => {
       allowTransition.value = true
-    })
+    }, 0)
   }
 
   // Always reset animation state to allow new interactions
