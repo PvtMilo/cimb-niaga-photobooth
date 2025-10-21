@@ -26,43 +26,69 @@ const promoSlides = Object.entries(promoModules)
   .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }))
 
 const slidesSource = ref(promoSlides)
+
 const placeholderSlide = {
   id: 'placeholder',
+  originalId: 'placeholder',
   type: 'placeholder',
   message: 'No promos available',
 }
 
 const hasRealSlides = computed(() => slidesSource.value.length > 0)
-const slides = computed(() => (hasRealSlides.value ? slidesSource.value : [placeholderSlide]))
 
-const initialTrackPosition = hasRealSlides.value ? 1 : 0
-const trackPosition = ref(initialTrackPosition)
-const currentIndex = ref(0)
+const slides = computed(() => {
+  if (!hasRealSlides.value) {
+    return [{ ...placeholderSlide }]
+  }
+  return slidesSource.value.map((slide) => ({
+    ...slide,
+    originalId: slide.id,
+  }))
+})
 
-watch(
-  hasRealSlides,
-  (value) => {
-    trackPosition.value = value ? 1 : 0
-    currentIndex.value = 0
-  },
-  { immediate: false }
-)
+const totalSlides = computed(() => slides.value.length)
 
 const trackSlides = computed(() => {
   if (!hasRealSlides.value) {
     return slides.value
   }
+
+  const total = slides.value.length
+  if (total === 0) {
+    return []
+  }
+
+  if (total === 1) {
+    const single = slides.value[0]
+    return [
+      {
+        ...single,
+        id: `${single.id}-single`,
+      },
+    ]
+  }
+
   const first = slides.value[0]
-  const last = slides.value[slides.value.length - 1]
+  const last = slides.value[total - 1]
+
   return [
-    { ...last, id: `${last.id}-clone-leading` },
-    ...slides.value,
-    { ...first, id: `${first.id}-clone-trailing` },
+    {
+      ...last,
+      id: `${last.id}-clone-head`,
+    },
+    ...slides.value.map((slide) => ({
+      ...slide,
+    })),
+    {
+      ...first,
+      id: `${first.id}-clone-tail`,
+    },
   ]
 })
 
-const activeSlide = computed(() => slides.value[currentIndex.value] ?? slides.value[0])
-const activeSlideId = computed(() => activeSlide.value?.id ?? 'placeholder')
+const allowTransition = ref(true)
+const trackPosition = ref(hasRealSlides.value && totalSlides.value > 1 ? 1 : 0)
+const currentIndex = ref(0)
 
 const carouselRoot = ref(null)
 const containerWidth = ref(0)
@@ -71,7 +97,6 @@ const dragPercent = computed(() =>
   containerWidth.value ? (dragOffset.value / containerWidth.value) * 100 : 0
 )
 
-const allowTransition = ref(true)
 const isAnimating = ref(false)
 const isPointerDown = ref(false)
 const isDragging = ref(false)
@@ -82,15 +107,35 @@ const isModalOpen = ref(false)
 const cursorHidden = ref(false)
 let cursorTimer = null
 
+const activeSlide = computed(() => slides.value[currentIndex.value] ?? slides.value[0])
+const activeSlideId = computed(() => activeSlide.value?.originalId ?? 'placeholder')
+
 const updateBounds = () => {
   if (carouselRoot.value) {
     containerWidth.value = carouselRoot.value.clientWidth
   }
 }
 
+watch(
+  [hasRealSlides, totalSlides],
+  ([has, total]) => {
+    allowTransition.value = false
+    trackPosition.value = has && total > 1 ? 1 : 0
+    currentIndex.value = 0
+    dragOffset.value = 0
+    isAnimating.value = false
+    requestAnimationFrame(() => {
+      allowTransition.value = true
+    })
+  },
+  { immediate: true }
+)
+
 const trackTransform = computed(() => {
-  const basePosition = hasRealSlides.value ? trackPosition.value : 0
-  const base = -(basePosition * 100)
+  if (!hasRealSlides.value || totalSlides.value <= 1) {
+    return `translate3d(${dragPercent.value}%, 0, 0)`
+  }
+  const base = -(trackPosition.value * 100)
   const adjusted = base + dragPercent.value
   return `translate3d(${adjusted}%, 0, 0)`
 })
@@ -136,33 +181,34 @@ const confirmStart = () => {
 }
 
 const goNext = () => {
-  if (!hasRealSlides.value || isAnimating.value) return
+  const total = totalSlides.value
+  if (!hasRealSlides.value || total <= 1 || isAnimating.value) return
   allowTransition.value = true
   dragOffset.value = 0
   isAnimating.value = true
   trackPosition.value += 1
-  const nextIndex = (currentIndex.value + 1) % slides.value.length
-  currentIndex.value = nextIndex
+  currentIndex.value = (currentIndex.value + 1) % total
 }
 
 const goPrev = () => {
-  if (!hasRealSlides.value || isAnimating.value) return
+  const total = totalSlides.value
+  if (!hasRealSlides.value || total <= 1 || isAnimating.value) return
   allowTransition.value = true
   dragOffset.value = 0
   isAnimating.value = true
   trackPosition.value -= 1
-  const prevIndex =
-    (currentIndex.value - 1 + slides.value.length) % slides.value.length
-  currentIndex.value = prevIndex
+  currentIndex.value = (currentIndex.value - 1 + total) % total
 }
 
 const finishTransitionIfNeeded = () => {
-  if (!hasRealSlides.value) {
+  if (!isAnimating.value) return
+
+  const total = totalSlides.value
+  if (!hasRealSlides.value || total <= 1) {
     isAnimating.value = false
     return
   }
 
-  const total = slides.value.length
   if (trackPosition.value === 0) {
     allowTransition.value = false
     trackPosition.value = total
@@ -215,7 +261,12 @@ const handlePointerMove = (event) => {
 }
 
 const triggerNavigationForDrag = (deltaX) => {
-  if (!hasRealSlides.value) return false
+  const total = totalSlides.value
+  if (!hasRealSlides.value || total <= 1) {
+    allowTransition.value = true
+    dragOffset.value = 0
+    return false
+  }
   if (Math.abs(deltaX) < pointerThreshold.value) {
     allowTransition.value = true
     dragOffset.value = 0
@@ -356,7 +407,7 @@ onBeforeUnmount(() => {
           class="carousel-slide"
           :class="{
             'is-placeholder': slide.type === 'placeholder',
-            'is-active': slide.id === activeSlideId,
+            'is-active': (slide.originalId ?? slide.id) === activeSlideId,
           }"
         >
           <img
