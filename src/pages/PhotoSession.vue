@@ -104,9 +104,15 @@ const retryNow = async () => {
   }
 }
 
-const goHome = () => {
+const goHome = async () => {
   stopPolling()
-  router.replace({ name: 'home' })
+  try {
+    await fetch(`${apiBaseUrl}/session/reset`, { method: 'POST' })
+  } catch (error) {
+    console.error('Failed to reset session before leaving photo session.', error)
+  } finally {
+    router.replace({ name: 'home' })
+  }
 }
 
 onMounted(() => {
