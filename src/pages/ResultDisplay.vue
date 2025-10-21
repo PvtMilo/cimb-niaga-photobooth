@@ -8,14 +8,19 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 const status = ref('checking')
 const assetPath = ref('')
 const assetUrl = ref('')
+const shareUrl = ref('')
 const completedAt = ref('')
 const errorMessage = ref('')
 const isRestarting = ref(false)
-const isDownloading = ref(false)
+const isQrModalOpen = ref(false)
 
 const hasAsset = computed(() => Boolean(assetUrl.value || assetPath.value))
+const hasShareLink = computed(() => Boolean(shareUrl.value))
 
 const assetHint = computed(() => (!assetUrl.value ? assetPath.value : ''))
+const qrImageSrc = computed(() =>
+  shareUrl.value ? `https://api.qrserver.com/v1/create-qr-code/?size=420x420&data=${encodeURIComponent(shareUrl.value)}` : ''
+)
 
 const fetchLatestState = async () => {
   try {
@@ -28,6 +33,8 @@ const fetchLatestState = async () => {
     const state = payload?.state ?? {}
     status.value = state?.status ?? 'idle'
     assetPath.value = state?.asset_path ?? ''
+    shareUrl.value = state?.share_url ?? ''
+
     const rawAssetUrl = state?.asset_url ?? ''
     if (rawAssetUrl) {
       try {
@@ -58,6 +65,7 @@ const fetchLatestState = async () => {
 }
 
 const goHome = () => {
+  isQrModalOpen.value = false
   router.replace({ name: 'home' })
 }
 
@@ -76,6 +84,8 @@ const retakeSession = async () => {
       const payload = await startResponse.json().catch(() => ({}))
       throw new Error(payload?.message || 'Failed to start a new session.')
     }
+    shareUrl.value = ''
+    isQrModalOpen.value = false
     router.replace({ name: 'photo-session' })
   } catch (error) {
     console.error(error)
@@ -88,25 +98,13 @@ const retakeSession = async () => {
   }
 }
 
-const downloadAsset = () => {
-  if (isDownloading.value) return
-  if (!hasAsset.value) {
-    errorMessage.value = 'Photo not ready for download.'
-    return
-  }
+const openQrModal = () => {
+  if (!hasShareLink.value) return
+  isQrModalOpen.value = true
+}
 
-  isDownloading.value = true
-  try {
-    if (assetUrl.value) {
-      window.open(assetUrl.value, '_blank', 'noopener')
-    } else if (assetHint.value) {
-      errorMessage.value = `File saved at: ${assetHint.value}`
-    } else {
-      errorMessage.value = 'No download URL available yet.'
-    }
-  } finally {
-    isDownloading.value = false
-  }
+const closeQrModal = () => {
+  isQrModalOpen.value = false
 }
 
 onMounted(() => {
@@ -145,18 +143,43 @@ onMounted(() => {
         <span v-else>Retake</span>
       </button>
       <button
+        v-if="hasShareLink"
         type="button"
         class="action-btn secondary"
-        :disabled="isDownloading || !hasAsset"
-        @click="downloadAsset"
+        @click="openQrModal"
       >
-        <span v-if="isDownloading">Preparing...</span>
-        <span v-else>Download</span>
+        QR
       </button>
       <button type="button" class="action-btn ghost" @click="goHome">
         Home
       </button>
     </section>
+
+    <teleport to="body">
+      <div
+        v-if="isQrModalOpen"
+        class="qr-modal-backdrop"
+        role="presentation"
+        @click="closeQrModal"
+      >
+        <div class="qr-modal" role="dialog" aria-modal="true" @click.stop>
+          <h2>Scan to Share</h2>
+          <div class="qr-wrapper">
+            <img
+              v-if="qrImageSrc"
+              :src="qrImageSrc"
+              alt="Share via QR code"
+              class="qr-image"
+            />
+            <p v-else class="qr-placeholder">Share link not ready yet.</p>
+          </div>
+          <p v-if="shareUrl" class="share-link">{{ shareUrl }}</p>
+          <button type="button" class="qr-close" @click="closeQrModal">
+            Back
+          </button>
+        </div>
+      </div>
+    </teleport>
 
     <p v-if="errorMessage" class="error-banner">{{ errorMessage }}</p>
   </main>
@@ -290,6 +313,91 @@ onMounted(() => {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.qr-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 50;
+}
+
+.qr-modal {
+  background: rgba(12, 16, 24, 0.96);
+  border-radius: 32px;
+  padding: clamp(2rem, 4vw, 3rem);
+  width: min(420px, 90vw);
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.qr-modal h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+}
+
+.qr-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 1.5rem;
+}
+
+.qr-image {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  background: #fff;
+  padding: 1rem;
+}
+
+.qr-placeholder {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.share-link {
+  margin: 0;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  word-break: break-all;
+  opacity: 0.85;
+}
+
+.qr-close {
+  align-self: center;
+  padding: 0.75rem 2.5rem;
+  border-radius: 999px;
+  border: none;
+  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+  font-weight: 600;
+  cursor: pointer;
+  background: #ff002b;
+  color: #fff;
+  box-shadow: 0 16px 32px rgba(255, 0, 43, 0.35);
+  transition: transform 120ms ease;
+}
+
+.qr-close:hover,
+.qr-close:focus-visible {
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.qr-close:active {
+  transform: translateY(0);
 }
 
 .error-banner {
