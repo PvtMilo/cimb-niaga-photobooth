@@ -69,26 +69,14 @@ const trackSlides = computed(() => {
     ]
   }
 
-  const first = slides.value[0]
-  const last = slides.value[total - 1]
-
-  return [
-    {
-      ...last,
-      id: `${last.id}-clone-head`,
-    },
-    ...slides.value.map((slide) => ({
-      ...slide,
-    })),
-    {
-      ...first,
-      id: `${first.id}-clone-tail`,
-    },
-  ]
+  // For ping-pong style, we don't need cloned slides
+  return slides.value.map((slide) => ({
+    ...slide,
+  }))
 })
 
 const allowTransition = ref(true)
-const trackPosition = ref(hasRealSlides.value && totalSlides.value > 1 ? 1 : 0)
+const trackPosition = ref(0) // Start at 0 since we don't have cloned slides
 const currentIndex = ref(0)
 
 const carouselRoot = ref(null)
@@ -123,7 +111,7 @@ watch(
   [hasRealSlides, totalSlides],
   ([has, total]) => {
     allowTransition.value = false
-    trackPosition.value = has && total > 1 ? 1 : 0
+    trackPosition.value = 0  // Start at 0 since no cloned slides
     currentIndex.value = 0
     dragOffset.value = 0
     isAnimating.value = false
@@ -219,11 +207,14 @@ const goNext = () => {
   // Don't allow new animations if already animating
   if (isAnimating.value) return
   
+  // For ping-pong style, don't go beyond the last slide
+  if (currentIndex.value >= total - 1) return
+  
   allowTransition.value = true
   dragOffset.value = 0
   isAnimating.value = true
-  trackPosition.value += 1
-  currentIndex.value = (currentIndex.value + 1) % total
+  currentIndex.value = currentIndex.value + 1
+  trackPosition.value = currentIndex.value
 }
 
 const goPrev = () => {
@@ -233,11 +224,14 @@ const goPrev = () => {
   // Don't allow new animations if already animating
   if (isAnimating.value) return
   
+  // For ping-pong style, don't go before the first slide
+  if (currentIndex.value <= 0) return
+  
   allowTransition.value = true
   dragOffset.value = 0
   isAnimating.value = true
-  trackPosition.value -= 1
-  currentIndex.value = (currentIndex.value - 1 + total) % total
+  currentIndex.value = currentIndex.value - 1
+  trackPosition.value = currentIndex.value
 }
 
 const finishTransitionIfNeeded = () => {
@@ -249,32 +243,7 @@ const finishTransitionIfNeeded = () => {
     return
   }
 
-  // When reaching the cloned first slide (after the last real slide), 
-  // jump back to the real first slide without animation
-  if (trackPosition.value === total + 1) {
-    // Disable transition to make the position jump instant
-    allowTransition.value = false
-    trackPosition.value = 1
-    currentIndex.value = 0
-    // Use setTimeout to ensure the position is set before re-enabling transitions
-    setTimeout(() => {
-      allowTransition.value = true
-    }, 0)
-  } 
-  // When reaching the cloned last slide (before the first real slide),
-  // jump to the real last slide without animation
-  else if (trackPosition.value === 0) {
-    // Disable transition to make the position jump instant
-    allowTransition.value = false
-    trackPosition.value = total
-    currentIndex.value = total - 1
-    // Use setTimeout to ensure the position is set before re-enabling transitions
-    setTimeout(() => {
-      allowTransition.value = true
-    }, 0)
-  }
-
-  // Always reset animation state to allow new interactions
+  // For ping-pong style, just reset animation state
   isAnimating.value = false
 }
 
