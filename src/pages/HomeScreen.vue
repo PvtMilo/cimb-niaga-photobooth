@@ -273,7 +273,8 @@ const handlePointerDown = (event) => {
 const handlePointerMove = (event) => {
   if (!isPointerDown.value || isModalOpen.value) return
   const deltaX = event.clientX - dragStartX.value
-  if (!isDragging.value && Math.abs(deltaX) > 10) {
+  // Use a more generous threshold to ensure taps are properly detected
+  if (!isDragging.value && Math.abs(deltaX) > 20) {
     isDragging.value = true
     // When we start dragging, we should stop any ongoing animation
     isAnimating.value = false
@@ -310,10 +311,18 @@ const handlePointerUp = (event) => {
   }
   const deltaX = event.clientX - dragStartX.value
   const navigated = isDragging.value ? triggerNavigationForDrag(deltaX) : false
+  
+  // Only process tap to open modal if we haven't started navigating and modal isn't open
   if (!isDragging.value && !navigated && !isModalOpen.value) {
     openModal()
   }
-  if (!navigated) {
+  // If the user barely moved their finger, consider it a tap even if it was slight movement
+  else if (isDragging.value && Math.abs(deltaX) <= 20 && !navigated && !isModalOpen.value) {
+    openModal()
+  }
+  
+  // Only reset transitions and drag offset if we're not opening the modal
+  if (!navigated && !isModalOpen.value) {
     allowTransition.value = true
     dragOffset.value = 0
   }
@@ -454,7 +463,6 @@ onBeforeUnmount(() => {
         v-if="isModalOpen"
         class="modal-backdrop"
         role="presentation"
-        @click="closeModal"
       >
         <div
           class="modal"
