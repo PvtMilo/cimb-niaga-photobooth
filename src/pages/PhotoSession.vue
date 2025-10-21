@@ -8,17 +8,22 @@ const pollIntervalMs = 2000
 
 const status = ref('checking')
 const assetPath = ref('')
+const assetUrl = ref('')
 const errorMessage = ref('')
 let pollHandle = null
 let hasNavigated = false
 
 const isError = computed(() => status.value === 'error')
-const isWaiting = computed(() => status.value === 'checking' || status.value === 'in_progress')
+const isWaiting = computed(
+  () => status.value === 'checking' || status.value === 'in_progress' || status.value === 'finalizing'
+)
 
 const statusCopy = computed(() => {
   switch (status.value) {
     case 'completed':
       return 'Processing complete. Loading your photos...'
+    case 'finalizing':
+      return 'Finalizing your photo. Please hold tight.'
     case 'in_progress':
       return 'Smile! Waiting for DSLRBooth to finish.'
     case 'error':
@@ -39,8 +44,21 @@ const stopPolling = () => {
 
 const handleState = (state) => {
   const nextStatus = state?.status ?? 'idle'
-  status.value = nextStatus
   assetPath.value = state?.asset_path ?? ''
+
+  const rawAssetUrl = state?.asset_url ?? ''
+  if (rawAssetUrl) {
+    try {
+      assetUrl.value = new URL(rawAssetUrl, apiBaseUrl).href
+    } catch (error) {
+      console.error('Failed to resolve asset URL', error)
+      assetUrl.value = rawAssetUrl
+    }
+  } else {
+    assetUrl.value = ''
+  }
+
+  status.value = nextStatus
 
   if (nextStatus === 'idle') {
     stopPolling()
@@ -48,10 +66,14 @@ const handleState = (state) => {
     return
   }
 
-  if (nextStatus === 'completed' && !hasNavigated) {
-    hasNavigated = true
-    stopPolling()
-    router.replace({ name: 'result' })
+  if (nextStatus === 'completed') {
+    if (assetUrl.value && !hasNavigated) {
+      hasNavigated = true
+      stopPolling()
+      router.replace({ name: 'result' })
+    } else if (!assetUrl.value) {
+      status.value = 'finalizing'
+    }
   }
 }
 
@@ -75,6 +97,7 @@ const fetchStatus = async () => {
 const retryNow = async () => {
   errorMessage.value = ''
   status.value = 'checking'
+  assetUrl.value = ''
   await fetchStatus()
   if (!pollHandle && !hasNavigated) {
     pollHandle = setInterval(fetchStatus, pollIntervalMs)
