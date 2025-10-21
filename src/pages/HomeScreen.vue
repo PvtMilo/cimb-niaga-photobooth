@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
 const promoModules = import.meta.glob('../../public/images/promos/*.{png,jpg,jpeg,webp,avif,gif}', {
   eager: true,
@@ -104,6 +105,8 @@ const pointerId = ref(null)
 const dragStartX = ref(0)
 
 const isModalOpen = ref(false)
+const isStartingSession = ref(false)
+const modalError = ref('')
 const cursorHidden = ref(false)
 let cursorTimer = null
 
@@ -167,17 +170,46 @@ const openModal = () => {
     clearTimeout(cursorTimer)
   }
   cursorHidden.value = false
+  modalError.value = ''
   isModalOpen.value = true
 }
 
 const closeModal = () => {
+  if (isStartingSession.value) return
+  modalError.value = ''
   isModalOpen.value = false
   resetCursorTimer()
 }
 
-const confirmStart = () => {
-  isModalOpen.value = false
-  router.push('/photo-session')
+const confirmStart = async () => {
+  if (isStartingSession.value) return
+  modalError.value = ''
+  isStartingSession.value = true
+  try {
+    const response = await fetch(`${apiBaseUrl}/session/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}))
+      const fallbackMessage = 'Failed to start the photo session. Please try again.'
+      throw new Error(payload?.message || fallbackMessage)
+    }
+
+    isModalOpen.value = false
+    router.push({ name: 'photo-session' })
+  } catch (error) {
+    console.error(error)
+    modalError.value =
+      error instanceof Error && error.message
+        ? error.message
+        : 'Unexpected error starting session.'
+  } finally {
+    isStartingSession.value = false
+  }
 }
 
 const goNext = () => {
@@ -441,11 +473,26 @@ onBeforeUnmount(() => {
           @click.stop
         >
           <h2 id="start-modal-title">Start the photo?</h2>
+          <p v-if="modalError" class="modal-error" role="alert">
+            {{ modalError }}
+          </p>
           <div class="modal-actions">
-            <button type="button" class="modal-btn primary" @click="confirmStart">
-              Yes
+            <button
+              type="button"
+              class="modal-btn primary"
+              :disabled="isStartingSession"
+              :aria-busy="isStartingSession"
+              @click="confirmStart"
+            >
+              <span v-if="isStartingSession">Starting...</span>
+              <span v-else>Yes</span>
             </button>
-            <button type="button" class="modal-btn secondary" @click="closeModal">
+            <button
+              type="button"
+              class="modal-btn secondary"
+              :disabled="isStartingSession"
+              @click="closeModal"
+            >
               No
             </button>
           </div>
@@ -553,6 +600,12 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
+.modal-error {
+  margin: 0 0 1.5rem;
+  color: #ff8aa0;
+  font-size: clamp(1rem, 2.2vw, 1.4rem);
+}
+
 .modal-actions {
   display: flex;
   gap: 1.5rem;
@@ -591,6 +644,13 @@ onBeforeUnmount(() => {
 
 .modal-btn:active {
   transform: translateY(0);
+}
+
+.modal-btn[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 @media (orientation: landscape) {
