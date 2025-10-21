@@ -7,22 +7,13 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
 const status = ref('checking')
 const assetPath = ref('')
+const assetUrl = ref('')
 const completedAt = ref('')
 const errorMessage = ref('')
 const isRestarting = ref(false)
 const isDownloading = ref(false)
 
-const hasAsset = computed(() => Boolean(assetPath.value))
-const assetUrl = computed(() => {
-  if (!assetPath.value) return ''
-  if (/^https?:\/\//i.test(assetPath.value)) {
-    return assetPath.value
-  }
-  if (assetPath.value.startsWith('/')) {
-    return `${apiBaseUrl}${assetPath.value}`
-  }
-  return ''
-})
+const hasAsset = computed(() => Boolean(assetUrl.value || assetPath.value))
 
 const assetHint = computed(() => (!assetUrl.value ? assetPath.value : ''))
 
@@ -37,6 +28,17 @@ const fetchLatestState = async () => {
     const state = payload?.state ?? {}
     status.value = state?.status ?? 'idle'
     assetPath.value = state?.asset_path ?? ''
+    const rawAssetUrl = state?.asset_url ?? ''
+    if (rawAssetUrl) {
+      try {
+        assetUrl.value = new URL(rawAssetUrl, apiBaseUrl).href
+      } catch (error) {
+        console.error('Failed to resolve asset URL', error)
+        assetUrl.value = rawAssetUrl
+      }
+    } else {
+      assetUrl.value = ''
+    }
     completedAt.value = state?.completed_at ?? ''
     errorMessage.value = ''
 
