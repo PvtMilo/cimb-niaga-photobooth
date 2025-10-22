@@ -129,31 +129,32 @@ onMounted(() => {
           <p v-else>Once DSLRBooth exports the photo we will show a preview here.</p>
         </div>
       </div>
-      <p v-if="completedAt" class="timestamp">Captured at {{ completedAt }}</p>
+      <!-- <p v-if="completedAt" class="timestamp">Captured at {{ completedAt }}</p> -->
+      <p class="cetak-caption">Foto berhasil diambil</p>
     </section>
 
     <section class="actions">
       <button
         type="button"
-        class="action-btn primary"
+        class="retake-btn"
         :disabled="isRestarting"
         @click="retakeSession"
       >
         <span v-if="isRestarting">Starting...</span>
-        <span v-else>Retake</span>
+        <span v-else>Ulangi</span>
       </button>
       <button
         v-if="hasShareLink"
         type="button"
-        class="action-btn primary"
+        class="downloads-btn"
         @click="openQrModal"
       >
-        QR
-      </button>
-      <button type="button" class="action-btn primary" @click="goHome">
-        Home
+        Download Foto
       </button>
     </section>
+    <button type="button" class="home-btn" @click="goHome">
+      Home
+    </button>
 
     <teleport to="body">
       <div
@@ -173,7 +174,7 @@ onMounted(() => {
             />
             <p v-else class="qr-placeholder">Share link not ready yet.</p>
           </div>
-          <p v-if="shareUrl" class="share-link">{{ shareUrl }}</p>
+          <!-- <p v-if="shareUrl" class="share-link">{{ shareUrl }}</p> -->
           <button type="button" class="qr-close" @click="closeQrModal">
             Back
           </button>
@@ -205,16 +206,16 @@ onMounted(() => {
   width: 100%;
   /* background: rgba(8, 12, 20, 0.9); */
   border-radius: 36px;
-  padding: clamp(1.5rem, 4vw, 3rem);
+  /* padding: clamp(1.5rem, 4vw, 3rem); */
   /* box-shadow: 0 24px 48px rgba(0, 0, 0, 0.38); */
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  /* gap: 1.5rem; */
   align-items: center;
 }
 
 .image-frame {
-  width: min(100%, 720px);
+  width: min(100%, 900px);
   aspect-ratio: 3 / 4;
   border-radius: 28px;
   overflow: hidden;
@@ -260,41 +261,73 @@ onMounted(() => {
   opacity: 0.7;
 }
 
+.cetak-caption {
+font-weight: 700;
+font-style: Bold;
+font-size: 72px;
+line-height: 100%;
+letter-spacing: 0%;
+text-align: center;
+position: relative;
+color: #E60000;
+margin:0px;
+top: 80px;
+
+}
+
 .actions {
   display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 40px;
+  transform: translate(0px, 90px);
 }
 
-.action-btn {
-  min-width: 11rem;
-  padding: 1rem 2.75rem;
-  border-radius: 999px;
-  font-size: clamp(1.2rem, 2.8vw, 1.8rem);
-  font-weight: 600;
+
+.retake-btn{
+    border-radius: 60px;
+    font-size: 60px;
+    width: 334px;
+    height: 130px; 
+    background: #ffff;
+    color: #E60000;
+    border: 2px solid #E60000;
+}
+
+.downloads-btn {
+    border-radius: 60px;
+    font-size: 60px;
+    width: 549px;
+    height: 130px;
+    border: none;
+    background: #E60000;
+    color: #fff;
+
+}
+
+.home-btn {
+  border-radius: 60px;
+  font-size: 60px;
+  width: 334px;
+  height: 130px;
+  background: none;
   border: none;
-  cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  color: black;
+  position: relative;
+  top: 90px;
+  
+
 }
 
-.action-btn.primary {
-  background: #ff002b;
-  color: #fff;
-  box-shadow: 0 20px 36px rgba(255, 0, 43, 0.35);
-}
-
-.action-btn.secondary {
+/* .action-btn.secondary {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.25);
-}
+} */
 
-.action-btn.ghost {
+/* .action-btn.ghost {
   background: transparent;
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.25);
-}
+} */
 
 .action-btn:hover,
 .action-btn:focus-visible {
@@ -326,7 +359,7 @@ onMounted(() => {
 }
 
 .qr-modal {
-  background: rgba(12, 16, 24, 0.96);
+  background: #FFFFFF;
   border-radius: 32px;
   padding: clamp(2rem, 4vw, 3rem);
   width: min(420px, 90vw);
@@ -341,13 +374,14 @@ onMounted(() => {
 .qr-modal h2 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 2.6rem);
+  color: red;
 }
 
 .qr-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
+  background: none;
   border-radius: 24px;
   padding: 1.5rem;
 }
@@ -372,6 +406,7 @@ onMounted(() => {
   font-size: clamp(1rem, 2.2vw, 1.3rem);
   word-break: break-all;
   opacity: 0.85;
+  color: black;
 }
 
 .qr-close {

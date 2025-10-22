@@ -23,7 +23,7 @@ const statusCopy = computed(() => {
     case 'completed':
       return 'Processing complete. Loading your photos...'
     case 'finalizing':
-      return 'Finalizing your photo. Please hold tight.'
+      return 'Finalizing your photo <br/>Please hold tight.'
     case 'in_progress':
       return 'Waiting for your photo.'
     case 'error':
@@ -131,13 +131,13 @@ onBeforeUnmount(() => {
       <div class="loader" v-if="isWaiting">
         <span class="loader-core" />
       </div>
-      <h1>{{ statusCopy }}</h1>
+      <h1 v-html="statusCopy"></h1>
       <p v-if="errorMessage" class="error-copy">{{ errorMessage }}</p>
       <div class="actions">
         <button type="button" class="action-btn primary" v-if="isError" @click="retryNow">
           Retry
         </button>
-        <button type="button" class="action-btn secondary" @click="goHome">
+        <button type="button" class="back-to-home action-btn" @click="goHome">
           Back to home
         </button>
       </div>
@@ -159,15 +159,18 @@ onBeforeUnmount(() => {
 }
 
 .status-panel {
-  max-width: 640px;
-  background: rgba(12, 16, 24, 0.92);
+  background: #ffff;
   border-radius: 32px;
-  padding: clamp(2rem, 6vw, 3.5rem);
+  padding: clamp(2rem, 5vw, 3rem);
+  text-align: center;
+  color: #ff0000;
+  min-width: min(50rem, 90vw);
+  min-height: min(40rem, 90vw);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.75rem;
+  justify-content: center
 }
 
 .status-panel.waiting {
@@ -218,21 +221,24 @@ h1 {
 }
 
 .action-btn {
-  min-width: 11rem;
-  padding: 0.85rem 2.5rem;
-  border-radius: 999px;
-  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  color: #E60000 ;
+  min-width: 20rem;
+  padding: 1rem 2.5rem;
+  font-size: 40px;
   font-weight: 600;
-  border: none;
+  border: 2px solid #E60000;
+  border-radius: 999px;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  background: white;
+  transform: translate(0px, 20px);
 }
 
-.action-btn.primary {
+/* .action-btn.primary {
   background: #ff002b;
   color: #fff;
   box-shadow: 0 16px 32px rgba(255, 0, 43, 0.35);
-}
+} */
 
 .action-btn.secondary {
   background: rgba(255, 255, 255, 0.12);
@@ -240,11 +246,11 @@ h1 {
   border: 2px solid rgba(255, 255, 255, 0.25);
 }
 
-.action-btn:hover,
+/* .action-btn:hover,
 .action-btn:focus-visible {
   transform: translateY(-2px);
   outline: none;
-}
+} */
 
 .action-btn:active {
   transform: translateY(0);

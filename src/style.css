@@ -63,10 +63,12 @@ button {
 
 .modal-batal {
   background-color: #FFFFFF;
-  border: 1px solid #E60000;
+  border: 2px solid #E60000;
   color: #E60000
 }
 
 .modal-ya{
   background-color: #E60000;
+  border: none;
 }
+

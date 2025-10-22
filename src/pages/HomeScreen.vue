@@ -584,19 +584,25 @@ onBeforeUnmount(() => {
 }
 
 .modal {
-  background: rgba(12, 16, 24, 0.95);
+  background: #FFFFFF;
   border-radius: 32px;
   padding: clamp(2rem, 5vw, 3rem);
   text-align: center;
   color: #fff;
-  min-width: min(36rem, 90vw);
+  min-width: min(50rem, 90vw);
+  min-height: min(40rem, 90vw);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center
 }
 
 .modal h2 {
-  font-size: clamp(2.2rem, 5vw, 3rem);
+  font-size: 82px;
   margin: 0 0 2rem;
   font-weight: 700;
+  color: #E60000;
 }
 
 .modal-error {
@@ -613,27 +619,16 @@ onBeforeUnmount(() => {
 }
 
 .modal-btn {
-  min-width: 10rem;
+  min-width: 20rem;
   padding: 1rem 2.5rem;
-  font-size: clamp(1.5rem, 3.2vw, 2rem);
+  font-size: 60px;
   font-weight: 600;
-  border: none;
+  /* border: none; */
   border-radius: 999px;
   cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
-.modal-btn.primary {
-  background: #ff002b;
-  color: #fff;
-  box-shadow: 0 16px 32px rgba(255, 0, 43, 0.35);
-}
-
-.modal-btn.secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-}
 
 .modal-btn:hover,
 .modal-btn:focus-visible {
