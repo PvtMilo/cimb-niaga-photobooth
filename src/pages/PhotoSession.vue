@@ -13,6 +13,9 @@ const errorMessage = ref('')
 let pollHandle = null
 let hasNavigated = false
 
+// Track component mounted state to prevent updates after unmounting
+let isComponentMounted = true
+
 const isError = computed(() => status.value === 'error')
 const isWaiting = computed(
   () => status.value === 'checking' || status.value === 'in_progress' || status.value === 'finalizing'
@@ -43,6 +46,9 @@ const stopPolling = () => {
 }
 
 const handleState = (state) => {
+  // Don't process state updates if component is unmounted
+  if (!isComponentMounted) return
+  
   const nextStatus = state?.status ?? 'idle'
   assetPath.value = state?.asset_path ?? ''
 
@@ -78,6 +84,9 @@ const handleState = (state) => {
 }
 
 const fetchStatus = async () => {
+  // Don't fetch if component is unmounted
+  if (!isComponentMounted) return
+  
   try {
     const response = await fetch(`${apiBaseUrl}/session/status`, { cache: 'no-store' })
     if (!response.ok) {
@@ -111,16 +120,20 @@ const goHome = async () => {
   } catch (error) {
     console.error('Failed to reset session before leaving photo session.', error)
   } finally {
-    router.replace({ name: 'home' })
+    if (isComponentMounted) {
+      router.replace({ name: 'home' })
+    }
   }
 }
 
 onMounted(() => {
+  isComponentMounted = true
   fetchStatus()
   pollHandle = setInterval(fetchStatus, pollIntervalMs)
 })
 
 onBeforeUnmount(() => {
+  isComponentMounted = false
   stopPolling()
 })
 </script>
@@ -226,7 +239,7 @@ h1 {
   padding: 1rem 2.5rem;
   font-size: 40px;
   font-weight: 600;
-  border: 2px solid #E60000;
+  border: 5px solid #E60000;
   border-radius: 999px;
   cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease;
@@ -240,11 +253,11 @@ h1 {
   box-shadow: 0 16px 32px rgba(255, 0, 43, 0.35);
 } */
 
-.action-btn.secondary {
+/* .action-btn.secondary {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.25);
-}
+} */
 
 /* .action-btn:hover,
 .action-btn:focus-visible {

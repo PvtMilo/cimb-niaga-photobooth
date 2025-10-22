@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -14,6 +14,10 @@ const errorMessage = ref('')
 const isRestarting = ref(false)
 const isQrModalOpen = ref(false)
 
+// Timer for periodic updates
+let updateTimer = null
+const UPDATE_INTERVAL = 5000 // 5 seconds
+
 const hasAsset = computed(() => Boolean(assetUrl.value || assetPath.value))
 const hasShareLink = computed(() => Boolean(shareUrl.value))
 
@@ -21,6 +25,14 @@ const assetHint = computed(() => (!assetUrl.value ? assetPath.value : ''))
 const qrImageSrc = computed(() =>
   shareUrl.value ? `https://api.qrserver.com/v1/create-qr-code/?size=420x420&data=${encodeURIComponent(shareUrl.value)}` : ''
 )
+
+// Clear any existing timer
+const clearUpdateTimer = () => {
+  if (updateTimer) {
+    clearTimeout(updateTimer)
+    updateTimer = null
+  }
+}
 
 const fetchLatestState = async () => {
   try {
@@ -50,6 +62,8 @@ const fetchLatestState = async () => {
     errorMessage.value = ''
 
     if (status.value === 'completed') {
+      // Stop polling when completed
+      clearUpdateTimer()
       return
     }
 
@@ -61,7 +75,18 @@ const fetchLatestState = async () => {
   } catch (error) {
     console.error(error)
     errorMessage.value = 'Unable to load the photo session result.'
+    
+    // Stop polling on error
+    clearUpdateTimer()
   }
+}
+
+// Schedule next update
+const scheduleNextUpdate = () => {
+  clearUpdateTimer()
+  updateTimer = setTimeout(() => {
+    fetchLatestState()
+  }, UPDATE_INTERVAL)
 }
 
 const goHome = () => {
@@ -109,6 +134,13 @@ const closeQrModal = () => {
 
 onMounted(() => {
   fetchLatestState()
+  // Start periodic updates
+  scheduleNextUpdate()
+})
+
+onBeforeUnmount(() => {
+  // Clean up timer when component is destroyed
+  clearUpdateTimer()
 })
 </script>
 
@@ -116,13 +148,13 @@ onMounted(() => {
   <main class="result-screen">
     <section class="preview-card">
       <div class="image-frame" :class="{ empty: !assetUrl }">
-        <img
-          v-if="assetUrl"
-          :src="assetUrl"
-          alt="Latest photo booth capture"
-          class="result-image"
-        />
-        <div v-else class="placeholder">
+                  <img
+                    v-if="assetUrl"
+                    :src="assetUrl"
+                    alt="Latest photo booth capture"
+                    class="result-image"
+                    @click="goHome"
+                  />        <div v-else class="placeholder">
           <h1 v-if="hasAsset">Photo ready!</h1>
           <h1 v-else>Awaiting final image...</h1>
           <p v-if="assetHint">Saved at: {{ assetHint }}</p>
@@ -152,9 +184,7 @@ onMounted(() => {
         Download Foto
       </button>
     </section>
-    <button type="button" class="home-btn" @click="goHome">
-      Home
-    </button>
+
 
     <teleport to="body">
       <div
@@ -199,6 +229,7 @@ onMounted(() => {
   justify-content: center;
   gap: clamp(2rem, 5vw, 3rem);
   text-align: center;
+  transform: translate(0px, -30px);
 }
 
 .preview-card {
@@ -289,7 +320,7 @@ top: 80px;
     height: 130px; 
     background: #ffff;
     color: #E60000;
-    border: 2px solid #E60000;
+    border: 5px solid #E60000;
 }
 
 .downloads-btn {

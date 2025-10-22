@@ -377,6 +377,7 @@ const handleKeydown = (event) => {
 }
 
 const preloadCache = new Set()
+const maxPreloadCacheSize = 50 // Limit the cache size to prevent memory buildup
 watch(
   () => [currentIndex.value, hasRealSlides.value],
   () => {
@@ -393,25 +394,49 @@ watch(
         const img = new Image()
         img.src = slide.src
         preloadCache.add(slide.src)
+        
+        // Limit cache size to prevent memory buildup
+        if (preloadCache.size > maxPreloadCacheSize) {
+          const firstEntry = preloadCache.values().next().value
+          if (firstEntry) {
+            preloadCache.delete(firstEntry)
+          }
+        }
       }
     })
   },
   { immediate: true }
 )
 
+// Store references to event listeners for proper cleanup
+let resizeListener = null
+let keydownListener = null
+
 onMounted(() => {
   updateBounds()
-  window.addEventListener('resize', updateBounds)
-  window.addEventListener('keydown', handleKeydown)
+  resizeListener = updateBounds
+  keydownListener = handleKeydown
+  window.addEventListener('resize', resizeListener)
+  window.addEventListener('keydown', keydownListener)
   resetCursorTimer()
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateBounds)
-  window.removeEventListener('keydown', handleKeydown)
+  if (resizeListener) {
+    window.removeEventListener('resize', resizeListener)
+    resizeListener = null
+  }
+  if (keydownListener) {
+    window.removeEventListener('keydown', keydownListener)
+    keydownListener = null
+  }
   if (cursorTimer) {
     clearTimeout(cursorTimer)
+    cursorTimer = null
   }
+  
+  // Clear the preload cache to free up memory
+  preloadCache.clear()
 })
 </script>
 
