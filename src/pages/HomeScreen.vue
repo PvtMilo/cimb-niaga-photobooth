@@ -496,14 +496,14 @@ onBeforeUnmount(() => {
           aria-labelledby="start-modal-title"
           @click.stop
         >
-          <h2 id="start-modal-title">Mulai foto?</h2>
+          <h2 id="start-modal-title  ">Mulai foto?</h2>
           <p v-if="modalError" class="modal-error" role="alert">
             {{ modalError }}
           </p>
           <div class="modal-actions">
             <button
               type="button"
-              class="modal-batal modal-btn"
+              class="modal-batal modal-btn putih-semua"
               :disabled="isStartingSession"
               @click="closeModal"
             >
@@ -511,7 +511,7 @@ onBeforeUnmount(() => {
             </button>
                         <button
               type="button"
-              class="modal-ya modal-btn"
+              class="modal-ya modal-btn merah-semua"
               :disabled="isStartingSession"
               :aria-busy="isStartingSession"
               @click="confirmStart"
@@ -624,9 +624,11 @@ onBeforeUnmount(() => {
 }
 
 .modal h2 {
-  font-size: 82px;
-  margin: 0 0 2rem;
+  font-size: 84px;
+  margin: 0 0 6rem;
   font-weight: 700;
+  font-family: "Poppins", sans-serif;
+  font-style: normal;
   color: #E60000;
 }
 
@@ -647,7 +649,7 @@ onBeforeUnmount(() => {
   min-width: 20rem;
   padding: 1rem 2.5rem;
   font-size: 60px;
-  font-weight: 600;
+  /* font-weight: 600; */
   /* border: none; */
   border-radius: 999px;
   cursor: pointer;

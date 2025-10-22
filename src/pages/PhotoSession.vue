@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
         <button type="button" class="action-btn primary" v-if="isError" @click="retryNow">
           Retry
         </button>
-        <button type="button" class="back-to-home action-btn" @click="goHome">
+        <button type="button" class="back-to-home action-btn putih-semua" @click="goHome">
           Back to home
         </button>
       </div>
@@ -172,6 +172,12 @@ onBeforeUnmount(() => {
 }
 
 .status-panel {
+  font-size: 84px;
+  margin: 0 0 2rem;
+  font-weight: 700;
+  font-family: "Poppins", sans-serif;
+  font-style: normal;
+  color: #E60000;
   background: #ffff;
   border-radius: 32px;
   padding: clamp(2rem, 5vw, 3rem);
@@ -238,7 +244,7 @@ h1 {
   min-width: 20rem;
   padding: 1rem 2.5rem;
   font-size: 40px;
-  font-weight: 600;
+  /* font-weight: 600; */
   border: 5px solid #E60000;
   border-radius: 999px;
   cursor: pointer;

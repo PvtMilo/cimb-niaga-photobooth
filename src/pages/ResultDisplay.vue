@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
     <section class="actions">
       <button
         type="button"
-        class="retake-btn"
+        class="retake-btn putih-semua"
         :disabled="isRestarting"
         @click="retakeSession"
       >
@@ -178,7 +178,7 @@ onBeforeUnmount(() => {
       <button
         v-if="hasShareLink"
         type="button"
-        class="downloads-btn"
+        class="downloads-btn merah-semua"
         @click="openQrModal"
       >
         Download Foto
@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
         @click="closeQrModal"
       >
         <div class="qr-modal" role="dialog" aria-modal="true" @click.stop>
-          <h2>Scan to Share</h2>
+          <h2>Download via <br> QR code</h2>
           <div class="qr-wrapper">
             <img
               v-if="qrImageSrc"
@@ -205,8 +205,8 @@ onBeforeUnmount(() => {
             <p v-else class="qr-placeholder">Share link not ready yet.</p>
           </div>
           <!-- <p v-if="shareUrl" class="share-link">{{ shareUrl }}</p> -->
-          <button type="button" class="qr-close" @click="closeQrModal">
-            Back
+          <button type="button" class="qr-close merah-semua" @click="closeQrModal">
+            Selesai
           </button>
         </div>
       </div>
@@ -293,8 +293,9 @@ onBeforeUnmount(() => {
 }
 
 .cetak-caption {
+font-family: "Poppins", sans-serif;
 font-weight: 700;
-font-style: Bold;
+font-style: normal;
 font-size: 72px;
 line-height: 100%;
 letter-spacing: 0%;
@@ -344,8 +345,6 @@ top: 80px;
   color: black;
   position: relative;
   top: 90px;
-  
-
 }
 
 /* .action-btn.secondary {
@@ -392,8 +391,8 @@ top: 80px;
 .qr-modal {
   background: #FFFFFF;
   border-radius: 32px;
-  padding: clamp(2rem, 4vw, 3rem);
-  width: min(420px, 90vw);
+  padding: 100px 100px 100px;
+  width: min(800px, 90vw);
   text-align: center;
   color: #fff;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
@@ -403,9 +402,12 @@ top: 80px;
 }
 
 .qr-modal h2 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 2.6rem);
-  color: red;
+  font-size: 84px;
+  margin: 0 0 0rem;
+  font-weight: 700;
+  font-family: "Poppins", sans-serif;
+  font-style: normal;
+  color: #E60000;
 }
 
 .qr-wrapper {
@@ -419,12 +421,13 @@ top: 80px;
 
 .qr-image {
   width: 100%;
-  max-width: 320px;
-  height: auto;
+  width: 378px;
+  height: 378px;
   display: block;
   border-radius: 16px;
   background: #fff;
   padding: 1rem;
+  position: relative;
 }
 
 .qr-placeholder {
@@ -442,15 +445,17 @@ top: 80px;
 
 .qr-close {
   align-self: center;
+  width: 80%;
+  height: 130px;
   padding: 0.75rem 2.5rem;
   border-radius: 999px;
   border: none;
-  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
-  font-weight: 600;
+  font-size: 60px;
+  /* font-weight: 600; */
   cursor: pointer;
   background: #ff002b;
   color: #fff;
-  box-shadow: 0 16px 32px rgba(255, 0, 43, 0.35);
+  /* box-shadow: 0 16px 32px rgba(255, 0, 43, 0.35); */
   transition: transform 120ms ease;
 }
 
