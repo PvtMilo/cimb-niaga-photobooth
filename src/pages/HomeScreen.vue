@@ -471,28 +471,28 @@ onBeforeUnmount(() => {
           aria-labelledby="start-modal-title"
           @click.stop
         >
-          <h2 id="start-modal-title">Start the photo?</h2>
+          <h2 id="start-modal-title">Mulai foto?</h2>
           <p v-if="modalError" class="modal-error" role="alert">
             {{ modalError }}
           </p>
           <div class="modal-actions">
             <button
               type="button"
-              class="modal-btn primary"
+              class="modal-batal modal-btn"
+              :disabled="isStartingSession"
+              @click="closeModal"
+            >
+              Batal
+            </button>
+                        <button
+              type="button"
+              class="modal-ya modal-btn"
               :disabled="isStartingSession"
               :aria-busy="isStartingSession"
               @click="confirmStart"
             >
               <span v-if="isStartingSession">Starting...</span>
-              <span v-else>Yes</span>
-            </button>
-            <button
-              type="button"
-              class="modal-btn secondary"
-              :disabled="isStartingSession"
-              @click="closeModal"
-            >
-              No
+              <span v-else>Ya</span>
             </button>
           </div>
         </div>

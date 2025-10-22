@@ -25,7 +25,7 @@ const statusCopy = computed(() => {
     case 'finalizing':
       return 'Finalizing your photo. Please hold tight.'
     case 'in_progress':
-      return 'Smile! Waiting for DSLRBooth to finish.'
+      return 'Waiting for your photo.'
     case 'error':
       return 'We hit a snag while waiting for the session.'
     case 'idle':
@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, rgba(255, 0, 43, 0.18), rgba(0, 0, 0, 0.9));
+  /* background: radial-gradient(circle at center, rgba(255, 0, 43, 0.18), rgba(0, 0, 0, 0.9)); */
   color: #fff;
   text-align: center;
   padding: 2rem;

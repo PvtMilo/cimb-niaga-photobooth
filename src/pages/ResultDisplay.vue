@@ -145,12 +145,12 @@ onMounted(() => {
       <button
         v-if="hasShareLink"
         type="button"
-        class="action-btn secondary"
+        class="action-btn primary"
         @click="openQrModal"
       >
         QR
       </button>
-      <button type="button" class="action-btn ghost" @click="goHome">
+      <button type="button" class="action-btn primary" @click="goHome">
         Home
       </button>
     </section>
@@ -190,7 +190,7 @@ onMounted(() => {
   width: 100vw;
   height: 100vh;
   padding: clamp(2rem, 4vw, 3rem);
-  background: radial-gradient(circle at center, rgba(0, 180, 255, 0.18), rgba(0, 0, 0, 0.92));
+  /* background: radial-gradient(circle at center, rgba(0, 180, 255, 0.18), rgba(0, 0, 0, 0.92)); */
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -203,10 +203,10 @@ onMounted(() => {
 .preview-card {
   max-width: 960px;
   width: 100%;
-  background: rgba(8, 12, 20, 0.9);
+  /* background: rgba(8, 12, 20, 0.9); */
   border-radius: 36px;
   padding: clamp(1.5rem, 4vw, 3rem);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.38);
+  /* box-shadow: 0 24px 48px rgba(0, 0, 0, 0.38); */
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -218,8 +218,6 @@ onMounted(() => {
   aspect-ratio: 3 / 4;
   border-radius: 28px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.04);
-  border: 2px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -232,7 +230,7 @@ onMounted(() => {
 .result-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
