@@ -196,13 +196,15 @@ onBeforeUnmount(() => {
         <div class="qr-modal" role="dialog" aria-modal="true" @click.stop>
           <h2>Download via <br> QR code</h2>
           <div class="qr-wrapper">
-            <img
-              v-if="qrImageSrc"
-              :src="qrImageSrc"
-              alt="Share via QR code"
-              class="qr-image"
-            />
-            <p v-else class="qr-placeholder">Share link not ready yet.</p>
+            <div class="border-box-qr">
+              <img
+                v-if="qrImageSrc"
+                :src="qrImageSrc"
+                alt="Share via QR code"
+                class="qr-image"
+              />
+              <p v-else class="qr-placeholder">Share link not ready yet.</p>
+            </div>
           </div>
           <!-- <p v-if="shareUrl" class="share-link">{{ shareUrl }}</p> -->
           <button type="button" class="qr-close merah-semua" @click="closeQrModal">
@@ -419,15 +421,20 @@ top: 80px;
   padding: 1.5rem;
 }
 
+.border-box-qr{
+  border: 2px solid #000000;
+  padding: 20px;
+
+}
+
 .qr-image {
-  width: 100%;
   width: 378px;
   height: 378px;
   display: block;
   border-radius: 16px;
   background: #fff;
-  padding: 1rem;
   position: relative;
+  padding: 30px;
 }
 
 .qr-placeholder {
@@ -445,7 +452,7 @@ top: 80px;
 
 .qr-close {
   align-self: center;
-  width: 80%;
+  width: 115%;
   height: 130px;
   padding: 0.75rem 2.5rem;
   border-radius: 999px;
